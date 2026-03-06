@@ -12,6 +12,7 @@ const STORAGE_NAME = "config.json";
 const DEFAULT_CONFIG = {
     notebookId: "",
     weekStart: 1, // 0 = Sunday, 1 = Monday
+    showWeekNumber: true,
     fontMode: "siyuan", // siyuan | sidebar | fixed
     fixedFontSize: 13,
     fontOffset: 0, // used in `siyuan` mode with Ctrl + wheel
@@ -325,6 +326,8 @@ module.exports = class TraditionalCalendarPlugin extends Plugin {
         this.holidaySchedule = buildHolidaySchedule2026();
 
         this.notebookSelect = null;
+        this.weekStartSelect = null;
+        this.showWeekNumberCheckbox = null;
         this.fontModeSelect = null;
         this.fixedFontSizeInput = null;
         this.quickAdjustCheckbox = null;
@@ -404,6 +407,8 @@ module.exports = class TraditionalCalendarPlugin extends Plugin {
         if (!fontModes.has(this.config.fontMode)) this.config.fontMode = DEFAULT_CONFIG.fontMode;
         if (!quarterModes.has(this.config.quarterLabelMode)) this.config.quarterLabelMode = DEFAULT_CONFIG.quarterLabelMode;
         if (!appearanceStyles.has(this.config.appearanceStyle)) this.config.appearanceStyle = DEFAULT_CONFIG.appearanceStyle;
+        this.config.weekStart = Math.round(normalizeNumber(this.config.weekStart, DEFAULT_CONFIG.weekStart, 0, 6));
+        this.config.showWeekNumber = this.config.showWeekNumber !== false;
         this.config.fixedFontSize = normalizeNumber(this.config.fixedFontSize, DEFAULT_CONFIG.fixedFontSize, 10, 24);
         this.config.fontOffset = normalizeNumber(this.config.fontOffset, DEFAULT_CONFIG.fontOffset, -8, 12);
         this.config.dotWordThreshold = normalizeNumber(this.config.dotWordThreshold, DEFAULT_CONFIG.dotWordThreshold, 20, 5000);
@@ -478,6 +483,49 @@ module.exports = class TraditionalCalendarPlugin extends Plugin {
                 });
                 this.notebookSelect = select;
                 this.refreshNotebookOptions();
+                return select;
+            },
+        });
+
+        this.setting.addItem({
+            title: "显示周数",
+            description: "是否在左侧显示 ISO 周数",
+            createActionElement: () => {
+                const input = document.createElement("input");
+                input.className = "b3-switch fn__flex-center";
+                input.type = "checkbox";
+                input.checked = this.config.showWeekNumber !== false;
+                input.addEventListener("change", () => {
+                    const draft = this.getEditableSettingConfig();
+                    draft.showWeekNumber = input.checked;
+                });
+                this.showWeekNumberCheckbox = input;
+                return input;
+            },
+        });
+
+        this.setting.addItem({
+            title: "每周起始日",
+            description: "设置日历每周从星期几开始",
+            createActionElement: () => {
+                const select = document.createElement("select");
+                select.className = "b3-select fn__block";
+                select.innerHTML = `
+                    <option value="1">周一</option>
+                    <option value="0">周日</option>
+                    <option value="2">周二</option>
+                    <option value="3">周三</option>
+                    <option value="4">周四</option>
+                    <option value="5">周五</option>
+                    <option value="6">周六</option>
+                `;
+                select.value = String(this.config.weekStart);
+                select.addEventListener("change", () => {
+                    const draft = this.getEditableSettingConfig();
+                    draft.weekStart = Math.round(normalizeNumber(select.value, DEFAULT_CONFIG.weekStart, 0, 6));
+                    select.value = String(draft.weekStart);
+                });
+                this.weekStartSelect = select;
                 return select;
             },
         });
@@ -623,6 +671,8 @@ module.exports = class TraditionalCalendarPlugin extends Plugin {
 
     syncSettingUI() {
         const source = this.settingDraft || this.config;
+        if (this.weekStartSelect) this.weekStartSelect.value = String(source.weekStart);
+        if (this.showWeekNumberCheckbox) this.showWeekNumberCheckbox.checked = source.showWeekNumber !== false;
         if (this.fontModeSelect) this.fontModeSelect.value = source.fontMode;
         if (this.fixedFontSizeInput) this.fixedFontSizeInput.value = String(source.fixedFontSize);
         if (this.quickAdjustCheckbox) this.quickAdjustCheckbox.checked = !!source.enableCtrlWheelAdjust;
@@ -646,6 +696,7 @@ module.exports = class TraditionalCalendarPlugin extends Plugin {
         this.refreshFixedFontSettingState();
         this.applyFontSizing();
         this.applyAppearanceStyle();
+        this.applyWeekConfig();
         this.updateWeekRow();
         this.renderCalendar();
         await this.saveConfig();
@@ -735,6 +786,7 @@ module.exports = class TraditionalCalendarPlugin extends Plugin {
         this.calendarQuarter = root.querySelector(".tc-quarter");
         this.calendarWeek = root.querySelector(".tc-week");
         this.applyAppearanceStyle();
+        this.applyWeekConfig();
 
         this.updateWeekRow();
 
@@ -788,10 +840,23 @@ module.exports = class TraditionalCalendarPlugin extends Plugin {
 
     updateWeekRow() {
         if (!this.calendarWeek) return;
+        this.applyWeekConfig();
         const weekLabels = getWeekLabels(this.config.weekStart);
-        this.calendarWeek.innerHTML =
-            `<div class="tc-weekhead">周</div>` +
-            weekLabels.map((label) => `<div class="tc-weekday">${label}</div>`).join("");
+        if (this.config.showWeekNumber !== false) {
+            this.calendarWeek.innerHTML =
+                `<div class="tc-weekhead">周</div>` +
+                weekLabels.map((label) => `<div class="tc-weekday">${label}</div>`).join("");
+            return;
+        }
+        this.calendarWeek.innerHTML = weekLabels.map((label) => `<div class="tc-weekday">${label}</div>`).join("");
+    }
+
+    applyWeekConfig() {
+        if (!this.calendarRoot) return;
+        const showWeekNumber = this.config.showWeekNumber !== false ? "true" : "false";
+        this.calendarRoot.setAttribute("data-show-weeknum", showWeekNumber);
+        // keep a second attribute for compatibility with older CSS selectors
+        this.calendarRoot.setAttribute("data-show-week-number", showWeekNumber);
     }
 
     installResizeObserver() {
@@ -1055,6 +1120,7 @@ module.exports = class TraditionalCalendarPlugin extends Plugin {
 
         this.applyFontSizing();
         this.applyAppearanceStyle();
+        this.applyWeekConfig();
         this.calendarTitle.textContent = `${year}年`;
         this.calendarMonth.textContent = `${month + 1}月`;
         if (this.calendarQuarter) {
@@ -1069,13 +1135,16 @@ module.exports = class TraditionalCalendarPlugin extends Plugin {
         const startDate = new Date(year, month, 1 - offset);
         const fragment = document.createDocumentFragment();
         const today = new Date();
+        const showWeekNumber = this.config.showWeekNumber !== false;
 
         for (let row = 0; row < 6; row += 1) {
             const rowStart = addDays(startDate, row * 7);
-            const weekCell = document.createElement("div");
-            weekCell.className = "tc-weeknum";
-            weekCell.textContent = String(getISOWeekNumber(rowStart));
-            fragment.appendChild(weekCell);
+            if (showWeekNumber) {
+                const weekCell = document.createElement("div");
+                weekCell.className = "tc-weeknum";
+                weekCell.textContent = String(getISOWeekNumber(rowStart));
+                fragment.appendChild(weekCell);
+            }
 
             for (let col = 0; col < 7; col += 1) {
                 const date = addDays(rowStart, col);

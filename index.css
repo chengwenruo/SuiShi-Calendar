@@ -43,6 +43,10 @@
     row-gap: 0.02em;
 }
 
+.tc-calendar[data-show-weeknum="false"] .tc-header {
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
 .tc-nav {
     grid-column: 6 / span 2;
     grid-row: 2;
@@ -50,6 +54,10 @@
     display: flex;
     align-items: center;
     gap: 0.2em;
+}
+
+.tc-calendar[data-show-weeknum="false"] .tc-nav {
+    grid-column: 5 / span 2;
 }
 
 .tc-btn {
@@ -91,6 +99,10 @@
     line-height: 1.12;
 }
 
+.tc-calendar[data-show-weeknum="false"] .tc-title {
+    grid-column: 1 / span 2;
+}
+
 .tc-month {
     grid-column: 2 / span 2;
     grid-row: 2;
@@ -99,6 +111,10 @@
     font-size: calc(var(--tc-font-size) * 0.98);
     font-weight: 500;
     line-height: 1.1;
+}
+
+.tc-calendar[data-show-weeknum="false"] .tc-month {
+    grid-column: 1 / span 2;
 }
 
 .tc-quarter {
@@ -112,10 +128,18 @@
     color: var(--tc-text);
 }
 
+.tc-calendar[data-show-weeknum="false"] .tc-quarter {
+    grid-column: 5 / span 2;
+}
+
 .tc-week {
     display: grid;
     grid-template-columns: 1.9em repeat(7, minmax(0, 1fr));
     gap: 0;
+}
+
+.tc-calendar[data-show-weeknum="false"] .tc-week {
+    grid-template-columns: repeat(7, minmax(0, 1fr));
 }
 
 .tc-weekhead,
@@ -140,6 +164,10 @@
     row-gap: 0.12em;
     column-gap: 0;
     flex: 1;
+}
+
+.tc-calendar[data-show-weeknum="false"] .tc-grid {
+    grid-template-columns: repeat(7, minmax(0, 1fr));
 }
 
 .tc-weeknum {
