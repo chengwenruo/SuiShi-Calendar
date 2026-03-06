@@ -26,12 +26,11 @@
     "keywords": [
         "calendar",
         "lunar",
-        "siyuan",
         "diary"
     ],
     "funding": {
         "custom": [
-            "https://github.com/chengwenruo/SuiShi-Calendar"
+            "https://github.com/chengwenruo/suishi-calendar"
         ]
     }
 }

@@ -24,6 +24,10 @@
     box-shadow: none;
     box-sizing: border-box;
     font-family: var(--b3-font-family, "Source Han Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif);
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
 }
 
 .tc-calendar[data-style="card"] {
@@ -164,6 +168,7 @@
     row-gap: 0.12em;
     column-gap: 0;
     flex: 1;
+    min-height: 0;
 }
 
 .tc-calendar[data-show-weeknum="false"] .tc-grid {

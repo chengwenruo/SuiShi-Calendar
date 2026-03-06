@@ -9,6 +9,12 @@
 } = require("siyuan");
 
 const STORAGE_NAME = "config.json";
+const SETTINGS_ICON_ID = "iconSuishiCalendarSettings";
+const SETTINGS_ICON_SYMBOL = `<symbol id="${SETTINGS_ICON_ID}" viewBox="0 0 24 24">
+  <path d="M7 2.75a.75.75 0 0 1 .75.75v1h8.5v-1a.75.75 0 0 1 1.5 0v1H19A2.75 2.75 0 0 1 21.75 8v9A2.75 2.75 0 0 1 19 19.75H5A2.75 2.75 0 0 1 2.25 17V8A2.75 2.75 0 0 1 5 5.25h1.25v-1A.75.75 0 0 1 7 2.75zm10.75 4H17v.75a.75.75 0 0 1-1.5 0v-.75h-7v.75a.75.75 0 1 1-1.5 0v-.75H6A1.25 1.25 0 0 0 4.75 8v.25h14.5V8A1.25 1.25 0 0 0 18 6.75h-.25zM4.75 9.75V17A1.25 1.25 0 0 0 6 18.25h12A1.25 1.25 0 0 0 19.25 17V9.75H4.75z" fill="currentColor"/>
+  <path d="M7.75 12.25h2v2h-2zm3.25 0h2v2h-2zm-3.25 3.25h2v2h-2z" fill="currentColor" opacity=".7"/>
+  <path d="M16.65 11.15a.75.75 0 0 1 .7.48l.18.46.46.18a.75.75 0 0 1 0 1.4l-.46.18-.18.46a.75.75 0 0 1-1.4 0l-.18-.46-.46-.18a.75.75 0 0 1 0-1.4l.46-.18.18-.46a.75.75 0 0 1 .7-.48z" fill="currentColor"/>
+</symbol>`;
 const DEFAULT_CONFIG = {
     notebookId: "",
     weekStart: 1, // 0 = Sunday, 1 = Monday
@@ -359,6 +365,7 @@ module.exports = class TraditionalCalendarPlugin extends Plugin {
         this.handleWheel = this.handleWheel.bind(this);
         this.handleRootMutation = this.handleRootMutation.bind(this);
 
+        this.addIcons(SETTINGS_ICON_SYMBOL);
         this.initDock();
         this.initSetting();
         this.addCommand({
@@ -370,7 +377,7 @@ module.exports = class TraditionalCalendarPlugin extends Plugin {
             },
         });
         this.topBarSetting = this.addTopBar({
-            icon: "iconSettings",
+            icon: SETTINGS_ICON_ID,
             title: this.getOpenSettingsText(),
             position: "right",
             callback: () => {
@@ -398,6 +405,10 @@ module.exports = class TraditionalCalendarPlugin extends Plugin {
             this.topBarSetting.remove();
             this.topBarSetting = null;
         }
+    }
+
+    async uninstall() {
+        await this.removeData(STORAGE_NAME);
     }
 
     normalizeConfig() {
